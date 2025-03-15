@@ -131,12 +131,6 @@ export default class GrassField {
   // Fragment shader for grass color
   grassFragmentShader() {
     return `
-
-      // Function for easing in
-      float easeIn(float t, float power) {
-          return pow(t, power);
-      }
-
       void main() {
         vec3 baseColor = vec3(0.0, 0.5, 0.0); // Base color for the grass
         vec3 tipColor = vec3(0.5, 0.5, 0.1); // Tip color for the grass
