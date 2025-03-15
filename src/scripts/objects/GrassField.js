@@ -103,9 +103,12 @@ export default class GrassField {
           );
       }
 
+      varying vec3 vPosition; // Varying variable to pass the position to the fragment shader
+
       void main() {
           // Get the original position of the vertex
           vec3 pos = position;
+          vPosition = pos; // Pass the position to the fragment shader
 
           // Calculate height percentage (normalized height along the blade)
           float heightPercent = pos.y;
@@ -131,14 +134,18 @@ export default class GrassField {
   // Fragment shader for grass color
   grassFragmentShader() {
     return `
+      varying vec3 vPosition; // Varying variable to pass the position to the fragment shader
       void main() {
         vec3 baseColor = vec3(0.0, 0.5, 0.0); // Base color for the grass
-        vec3 tipColor = vec3(0.5, 0.5, 0.1); // Tip color for the grass
+        vec3 tipColor = vec3(0.5, 0.5, 0.1);  // Tip color for the grass
 
-        // creating a diffuse gradient from the base to the tip
-        vec3 diffuseColor = mix(baseColor, tipColor, 0.5);
+        // Use the v-coordinate of the UV to determine the gradient
+        float gradientFactor = vPosition.y; // Assuming vUV.y goes from 0 (base) to 1 (tip)
 
-        // Set the color to a light green
+        // Interpolate between baseColor and tipColor
+        vec3 diffuseColor = mix(baseColor, tipColor, gradientFactor);
+
+        // Set the final color
         gl_FragColor = vec4(diffuseColor, 1.0);
       }
     `;
