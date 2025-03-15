@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import GrassField from './GrassField';
+import Car from './Car';
 
 export default class Ground {
     constructor(stage) {
@@ -11,6 +12,9 @@ export default class Ground {
     load() {
         this.createGround();
         this.createGrassField();
+        
+        const car = new Car(this.stage);
+        car.load();
     }
 
     createGround() {
@@ -23,7 +27,7 @@ export default class Ground {
     }
 
     createGrassField() {
-        this.grassField = new GrassField(10, 10, 1000, 5);
+        this.grassField = new GrassField(this.stage, 10, 10, 1000, 5);
         this.stage.sceneManager.add(this.grassField.grassMesh);
     }
 }
