@@ -34,7 +34,6 @@ export default class App {
     animate() {
         requestAnimationFrame(() => this.animate());
         this.controls.update();
-        // this.ground.grassField.update(Math.random() * 0.01);
         this.rendererManager.render(this.sceneManager.scene, this.cameraManager.camera);
     }
 
