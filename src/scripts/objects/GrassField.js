@@ -24,7 +24,7 @@ export default class GrassField {
     for (let i = 0; i < numVertices; i++) {
       const t = (i / (numVertices - 1)) / slimScale; // Normalized height along the blade (0 to 1)
       const y = Math.sin(t * slimScale * Math.PI); // Slight curve for the grass blade
-      const x = Math.cos(t * slimScale * Math.PI); // Height of the grass blade
+      const x = t; // Height of the grass blade
       const z = 0;
   
       // Set vertex positions
