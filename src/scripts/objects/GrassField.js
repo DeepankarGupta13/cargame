@@ -15,7 +15,7 @@ export default class GrassField {
   createGrassField() {
     const grassGeometry = new THREE.BufferGeometry();
     const numVertices = 15; // Number of vertices per grass blade
-    const slimScale = 10;
+    const slimScale = 5;
     const vertices = new Float32Array(numVertices * 3); // 3 components (x, y, z) per vertex
     const uvs = new Float32Array(numVertices * 2); // 2 components (u, v) per vertex
     const indices = []; // Indices to define the triangles
@@ -108,17 +108,24 @@ export default class GrassField {
       void main() {
           // Get the original position of the vertex
           vec3 pos = position;
+
           vPosition = pos; // Pass the position to the fragment shader
 
           // Calculate height percentage (normalized height along the blade)
           float heightPercent = pos.y;
           
           // Random lean for each grass blade (you can pass this as a uniform or generate it)
-          float randomLean = sin(time + pos.y) * 0.3; // Example random lean
+          float randomLean = sin(time + pos.y) * 0.1; // Example random lean
           
           // Calculate curve amount based on random lean and height percentage
           float curveAmount = sin(randomLean * heightPercent);
-          curveAmount = clamp(curveAmount, 0.0, 10.0);
+
+          // noise for wind effect
+          float noiseSample = sin(((time*0.35) + pos.y));
+          
+          curveAmount += noiseSample * windStrength;
+          curveAmount *= tan(time) * 0.5 + 1.5; // Adjust the curve amount
+
           // Create a 3x3 rotation matrix around the X-axis
           mat3 grassMat = rotateX(curveAmount);
 
@@ -140,13 +147,32 @@ export default class GrassField {
         vec3 tipColor = vec3(0.5, 0.5, 0.1);  // Tip color for the grass
 
         // Use the v-coordinate of the UV to determine the gradient
-        float gradientFactor = vPosition.y; // Assuming vUV.y goes from 0 (base) to 1 (tip)
+        float gradientFactor = vPosition.y; // Assuming vPosition.y is normalized (0 at base, 1 at tip)
 
         // Interpolate between baseColor and tipColor
-        vec3 diffuseColor = mix(baseColor, tipColor, gradientFactor);
+        vec3 diffuseColor = mix(baseColor, tipColor, clamp(gradientFactor, 0.0, 1.0));
+
+        vec3 ambientLightColor = vec3(0.2, 0.2, 0.2); // Soft white ambient light
+        float ambientIntensity = 1.0; // Intensity of ambient light
+
+        // Calculate ambient light contribution
+        vec3 ambient = ambientLightColor * ambientIntensity;
+
+        // Light direction (example: light coming from the top-right)
+        vec3 lightDirection = normalize(vec3(10.0, 10.0, 0.0));
+
+        // Surface normal (assuming it's passed from the vertex shader)
+        vec3 normal = normalize(vec3(0.5, 1, 0));
+
+        // Diffuse reflection calculation
+        float diffuseIntensity = max(dot(normal, lightDirection), 0.2);
+        vec3 diffuseReflection = diffuseColor * diffuseIntensity;
+
+        // Combine ambient and diffuse reflection
+        vec3 finalColor = ambient + diffuseReflection;
 
         // Set the final color
-        gl_FragColor = vec4(diffuseColor, 1.0);
+        gl_FragColor = vec4(finalColor, 1.0);
       }
     `;
   }
@@ -159,8 +185,8 @@ export default class GrassField {
   startAnimation() {
     this.interval = setInterval(() => {
       const now = Date.now();
-      this.update(Math.sin(now * 2.0) * 0.5 + 0.5);
-    }, 100);
+      this.update(Math.sin(now * 2.0) * 0.5);
+    }, 130);
   }
 
   stopAnimation() {

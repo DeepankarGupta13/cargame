@@ -27,7 +27,7 @@ export default class Ground {
     }
 
     createGrassField() {
-        this.grassField = new GrassField(this.stage, 10, 10, 1000, 5);
+        this.grassField = new GrassField(this.stage, 10, 10, 10000, 0.1);
         this.stage.sceneManager.add(this.grassField.grassMesh);
         this.grassField.startAnimation();
     }
