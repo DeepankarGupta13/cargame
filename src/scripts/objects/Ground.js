@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import GrassField from './GrassField';
 import Car from './Car';
+import { URL } from '../../utils/constants';
 
 export default class Ground {
     constructor(stage) {
@@ -70,7 +71,7 @@ export default class Ground {
 
     getGroundMaterial() {
         if (this.material) return this.material;
-        const texture = new THREE.TextureLoader().load('http://localhost:5173/groundTexture.png'); 
+        const texture = new THREE.TextureLoader().load(URL+'groundTexture.png'); 
         // immediately use the texture for material creation 
 
         const material = new THREE.MeshBasicMaterial( { map:texture } );

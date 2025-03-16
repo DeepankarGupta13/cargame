@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RGBELoader } from "three/examples/jsm/loaders/RGBELoader.js";
+import { URL } from '../../utils/constants';
 
 export default class SceneManager {
     constructor() {
@@ -101,7 +102,7 @@ export default class SceneManager {
     addSkySphere() {
         // Load the HDRI texture
         const loader = new RGBELoader();
-        loader.load("http://localhost:5173/sky.hdr", (texture) => {
+        loader.load(URL+"sky.hdr", (texture) => {
             texture.mapping = THREE.EquirectangularReflectionMapping;
 
             // Set the scene background and environment

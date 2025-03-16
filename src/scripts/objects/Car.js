@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { URL } from '../../utils/constants';
 
 export default class Car {
     constructor(stage) {
@@ -14,7 +15,7 @@ export default class Car {
 
     load() {
         const loader = new GLTFLoader();
-        loader.load('http://localhost:5173/car.glb', (gltf) => {
+        loader.load(URL+'car.glb', (gltf) => {
             this.car = gltf.scene;
 
             this.car.scale.set(0.02, 0.02, 0.02);
