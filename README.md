@@ -1,2 +1,3 @@
-# cargame
-RacingGame using Threejs
+# Grass Simulator
+simulating grass using webgl shaders
+
