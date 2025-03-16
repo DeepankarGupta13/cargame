@@ -54,7 +54,7 @@ export default class GrassField {
     // Slightly scale up the outline mesh to make it visible behind the grass
     const matrix = new THREE.Matrix4();
     for (let i = 0; i < this.numBlades; i++) {
-      matrix.makeScale(1.1, 1.1, 1.1); // Scale up by 10%
+      matrix.makeScale(0.1,0.1,0.1); // Scale up by 10%
       outlineMesh.setMatrixAt(i, matrix);
     }
 

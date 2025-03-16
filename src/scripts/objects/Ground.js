@@ -12,13 +12,10 @@ export default class Ground {
     load() {
         this.createGround();
         this.createGrassField();
-        
-        const car = new Car(this.stage);
-        car.load();
     }
 
     createGround() {
-        const groundGeometry = new THREE.PlaneGeometry(100, 100);
+        const groundGeometry = new THREE.PlaneGeometry(10.5, 10.5);
         const groundMaterial = this.getGroundMaterial();
         const plane = new THREE.Mesh(groundGeometry, groundMaterial);
         plane.rotation.x = - Math.PI / 2;
@@ -27,12 +24,20 @@ export default class Ground {
     }
 
     createGrassField() {
-        this.grassField = new GrassField(this.stage, 10, 10, 1000, 0.1);
+        this.grassField = new GrassField(this.stage, 10, 10, 10000, 0.1);
         this.stage.sceneManager.add(this.grassField.grassMesh);
         this.grassField.startAnimation();
     }
 
     getGroundMaterial() {
+        const texture = new THREE.TextureLoader().load('http://localhost:5173/groundTexture.png'); 
+        // immediately use the texture for material creation 
+
+        const material = new THREE.MeshBasicMaterial( { map:texture } );
+        return material;
+    }
+
+    getGroundShaderMaterial() {
         return new THREE.ShaderMaterial({
             vertexShader: this.createVertexShader(),
             fragmentShader: this.createFragmentShader(),

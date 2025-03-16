@@ -4,7 +4,7 @@ export default class CameraManager {
     constructor(screenDimensions) {
         this.camera = new THREE.PerspectiveCamera(75, screenDimensions.width / screenDimensions.height, 0.1, 1000);
         
-        this.camera.position.set(0, 5, 10);
+        this.camera.position.set(0.4, 0.4, 1);
         this.camera.lookAt(0, 0, 0);
     }
 
