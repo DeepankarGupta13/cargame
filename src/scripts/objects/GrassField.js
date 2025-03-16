@@ -15,7 +15,7 @@ export default class GrassField {
   createGrassField() {
     const grassGeometry = new THREE.BufferGeometry();
     const numVertices = 15; // Number of vertices per grass blade
-    const slimScale = 5;
+    const slimScale = 3;
     const vertices = new Float32Array(numVertices * 3); // 3 components (x, y, z) per vertex
     const uvs = new Float32Array(numVertices * 2); // 2 components (u, v) per vertex
     const indices = []; // Indices to define the triangles

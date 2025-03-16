@@ -19,7 +19,7 @@ export default class Ground {
 
     createGround() {
         const groundGeometry = new THREE.PlaneGeometry(100, 100);
-        const groundMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff , side: THREE.DoubleSide });
+        const groundMaterial = new THREE.MeshBasicMaterial({ color: 0x33cc33 , side: THREE.DoubleSide });
         const plane = new THREE.Mesh(groundGeometry, groundMaterial);
         plane.rotation.x = - Math.PI / 2;
         this.plane = plane;
@@ -27,7 +27,7 @@ export default class Ground {
     }
 
     createGrassField() {
-        this.grassField = new GrassField(this.stage, 10, 10, 10000, 0.1);
+        this.grassField = new GrassField(this.stage, 100, 100, 1000000, 0.1);
         this.stage.sceneManager.add(this.grassField.grassMesh);
         this.grassField.startAnimation();
     }
