@@ -41,19 +41,25 @@ export default class Ground {
         this.height = height;
         this.removeGround();
         this.createGround();
-        this.grassField.removeGrassField();
-        this.createGrassField();
+
+        this.grassField.height = height;
+        this.grassField.width = width;
+        this.grassField.updateGrassObject();
     }
 
     updateNoOfGrassBlades(numBlades) {
-        this.numBlades = numBlades;
-        this.grassField.removeGrassField(this.numBlades);
-        this.createGrassField();
+        this.grassField.numBlades = numBlades;
+        this.grassField.updateGrassObject();
     }
 
     updateWindStrength(windStrength) {
         this.windStrength = windStrength;
         this.grassField.updateWindStrength(this.windStrength);
+    }
+
+    updateGrassRotation(grassRotate) {
+        this.grassField.setGrassRotate(grassRotate);
+        this.grassField.updateGrassObject();
     }
 
     createGrassField() {

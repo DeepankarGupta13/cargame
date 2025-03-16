@@ -7,6 +7,7 @@ export default class GrassField {
     this.height = height; // Height of the grass field
     this.numBlades = numBlades; // Number of grass blades
     this.windStrength = windStrength; // Strength of the wind effect
+    this.ifGrassRotate = false; // Rotate the grass blades
 
     // Initialize wind direction
     this.windDirection = new THREE.Vector2(1, 0); // Initial wind direction
@@ -28,6 +29,7 @@ export default class GrassField {
     return instancedMesh;
   }
 
+  // TODO: need to create a new vertex shader for the outline mesh
   createOutlineMesh() {
     const grassGeometry = this.createGrassGeometry();
     const outlineMaterial = new THREE.ShaderMaterial({
@@ -54,7 +56,19 @@ export default class GrassField {
     // Slightly scale up the outline mesh to make it visible behind the grass
     const matrix = new THREE.Matrix4();
     for (let i = 0; i < this.numBlades; i++) {
-      matrix.makeScale(0.1,0.1,0.1); // Scale up by 10%
+      if (this.grassIndexPropMap.get(i)) {
+        const scale = this.grassIndexPropMap.get(i).scale;
+        matrix.makeScale(1, scale, 1);
+
+        const rotationY = this.grassIndexPropMap.get(i).rotationY;
+        if (rotationY) matrix.makeRotationY(rotationY);
+  
+        const position = this.grassIndexPropMap.get(i).position;
+        matrix.setPosition(position.x, position.y, position.z);
+      }
+
+      else matrix.makeScale(0.1,0.1,0.1); // Scale up by 10%
+
       outlineMesh.setMatrixAt(i, matrix);
     }
 
@@ -98,6 +112,8 @@ export default class GrassField {
   }
 
   setInstanceMatrices(instancedMesh) {
+    this.grassIndexPropMap = new Map();
+
     const matrix = new THREE.Matrix4();
     for (let i = 0; i < this.numBlades; i++) {
       const x = (Math.random() - 0.5) * this.width;
@@ -107,12 +123,19 @@ export default class GrassField {
       const scale = Math.random() * 1;
       matrix.makeScale(1, scale, 1);
 
+      let rotationY = null;
       // Position each grass blade
-      matrix.makeRotationY(Math.random() * Math.PI * 2);
+      if (this.ifGrassRotate) {
+        rotationY = Math.random() * Math.PI * 2;
+        matrix.makeRotationY(rotationY);
+      }
       matrix.setPosition(x, y, z);
 
       instancedMesh.setMatrixAt(i, matrix);
+
+      this.grassIndexPropMap.set(i, { position: {x, y, z}, scale: scale, rotationY: rotationY ? rotationY : 0});
     }
+
   }
 
   removeGrassField() {
@@ -125,11 +148,20 @@ export default class GrassField {
     this.outlineMesh.material.dispose();
   }
 
-  updateNoOfGrassBlades(numBlades = this.numBlades) {
-    this.numBlades = numBlades;
+  setGrassRotate(ifGrassRotate) {
+    this.ifGrassRotate = ifGrassRotate;
+  }
+
+  // TODO: instead of adding and removing the mesh need to find a way to update the mesh
+  // according to new properties
+  // we can have the creation of vertices inside vertex shader and update the properties
+  // number of grass too
+  updateGrassObject() {
     this.removeGrassField();
     this.grassMesh = this.createGrassField();
     this.outlineMesh = this.createOutlineMesh();
+    this.stage.sceneManager.add(this.grassMesh);
+    this.startAnimation();
   }
 
   grassMaterial() {
@@ -248,6 +280,13 @@ export default class GrassField {
     this.windDirection.set(Math.cos(angle), Math.sin(angle));
     this.grassMesh.material.uniforms.windDirection.value.copy(this.windDirection);
     this.outlineMesh.material.uniforms.windDirection.value.copy(this.windDirection);
+
+    /**
+     * TODO:
+     * 1. animate wind strength
+     * wind strength should be same for particular period of time and then change
+     * need to find a function to animate wind strength
+     */
   }
 
   updateWindStrength(windStrength) {
