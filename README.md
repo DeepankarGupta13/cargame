@@ -54,7 +54,9 @@ Contributions are welcome! If you'd like to contribute to this project, please f
 For questions or feedback, feel free to reach out:
 
 Deepankar Gupta
+
 GitHub: DeepankarGupta13
+
 Email: deepankarsama@gmail.com
 
 **Enjoy simulating grass growth! 🌱**
