@@ -8,16 +8,64 @@ export default class GrassField {
     this.numBlades = numBlades; // Number of grass blades
     this.windStrength = windStrength; // Strength of the wind effect
 
+    // Initialize wind direction
+    this.windDirection = new THREE.Vector2(1, 0); // Initial wind direction
+
     // Create the grass field
     this.grassMesh = this.createGrassField();
+    this.outlineMesh = this.createOutlineMesh(); // Create outline mesh
   }
 
   createGrassField() {
+    const grassGeometry = this.createGrassGeometry();
+    const instancedMesh = new THREE.InstancedMesh(
+      grassGeometry,
+      this.grassMaterial(),
+      this.numBlades
+    );
+
+    this.setInstanceMatrices(instancedMesh);
+    return instancedMesh;
+  }
+
+  createOutlineMesh() {
+    const grassGeometry = this.createGrassGeometry();
+    const outlineMaterial = new THREE.ShaderMaterial({
+      vertexShader: this.grassVertexShader(), // Use the same vertex shader
+      fragmentShader: `
+        void main() {
+          gl_FragColor = vec4(0.0, 0.0, 0.0, 1.0); // Black color for outlines
+        }
+      `,
+      uniforms: {
+        time: { value: 0 }, // Time uniform for wind animation
+        windStrength: { value: this.windStrength }, // Wind strength uniform
+        windDirection: { value: new THREE.Vector2(1, 0) }, // Wind direction uniform
+      },
+      side: THREE.DoubleSide,
+    });
+
+    const outlineMesh = new THREE.InstancedMesh(
+      grassGeometry,
+      outlineMaterial,
+      this.numBlades
+    );
+
+    // Slightly scale up the outline mesh to make it visible behind the grass
+    const matrix = new THREE.Matrix4();
+    for (let i = 0; i < this.numBlades; i++) {
+      matrix.makeScale(1.1, 1.1, 1.1); // Scale up by 10%
+      outlineMesh.setMatrixAt(i, matrix);
+    }
+
+    return outlineMesh;
+  }
+
+  createGrassGeometry() {
     const grassGeometry = new THREE.BufferGeometry();
     const numVertices = 15; // Number of vertices per grass blade
-    const slimScale = 3;
+    const slimScale = 10;
     const vertices = new Float32Array(numVertices * 3); // 3 components (x, y, z) per vertex
-    const uvs = new Float32Array(numVertices * 2); // 2 components (u, v) per vertex
     const indices = []; // Indices to define the triangles
 
     // Create a more detailed grass blade with 15 vertices
@@ -31,10 +79,6 @@ export default class GrassField {
       vertices[i * 3] = x;
       vertices[i * 3 + 1] = y;
       vertices[i * 3 + 2] = z;
-
-      // Set UVs (texture coordinates)
-      uvs[i * 2] = t; // U coordinate (along the blade)
-      uvs[i * 2 + 1] = 0; // V coordinate (across the blade)
     }
 
     for (let i = 0; i <= parseInt(numVertices / 2, 10); i++) {
@@ -50,13 +94,10 @@ export default class GrassField {
     );
     grassGeometry.setIndex(indices);
 
-    // Create the instanced mesh
-    const instancedMesh = new THREE.InstancedMesh(
-      grassGeometry,
-      this.grassMaterial(),
-      this.numBlades
-    );
+    return grassGeometry;
+  }
 
+  setInstanceMatrices(instancedMesh) {
     const matrix = new THREE.Matrix4();
     for (let i = 0; i < this.numBlades; i++) {
       const x = (Math.random() - 0.5) * this.width;
@@ -66,13 +107,11 @@ export default class GrassField {
       const scale = 0.5 + Math.random() * 0.5;
       matrix.makeScale(1, scale, 1);
 
-      // Position and rotate each grass blade
+      // Position each grass blade
       matrix.setPosition(x, y, z);
 
       instancedMesh.setMatrixAt(i, matrix);
     }
-
-    return instancedMesh;
   }
 
   grassMaterial() {
@@ -82,6 +121,7 @@ export default class GrassField {
       uniforms: {
         time: { value: 0 }, // Time uniform for wind animation
         windStrength: { value: this.windStrength }, // Wind strength uniform
+        windDirection: { value: new THREE.Vector2(1, 0) }, // Wind direction uniform
       },
       side: THREE.DoubleSide, // Render both sides of the grass blades
       transparent: true, // Enable transparency for better blending
@@ -93,6 +133,7 @@ export default class GrassField {
     return `
       uniform float time; // Time uniform for wind animation
       uniform float windStrength; // Wind strength uniform
+      uniform vec2 windDirection; // Wind direction uniform
 
       // Function to create a 3x3 rotation matrix around the X-axis
       mat3 rotateX(float angle) {
@@ -115,7 +156,7 @@ export default class GrassField {
           float heightPercent = pos.y;
           
           // Random lean for each grass blade (you can pass this as a uniform or generate it)
-          float randomLean = sin(time + pos.y) * 0.1; // Example random lean
+          float randomLean = sin(time + pos.y) * 0.3; // Example random lean
           
           // Calculate curve amount based on random lean and height percentage
           float curveAmount = sin(randomLean * heightPercent);
@@ -124,7 +165,9 @@ export default class GrassField {
           float noiseSample = sin(((time*0.35) + pos.y));
           
           curveAmount += noiseSample * windStrength;
-          curveAmount *= tan(time) * 0.5 + 1.5; // Adjust the curve amount
+
+          // Apply wind direction to the curve amount
+          curveAmount *= windDirection.x; // Use windDirection.x to influence the curve
 
           // Create a 3x3 rotation matrix around the X-axis
           mat3 grassMat = rotateX(curveAmount);
@@ -159,7 +202,7 @@ export default class GrassField {
         vec3 ambient = ambientLightColor * ambientIntensity;
 
         // Light direction (example: light coming from the top-right)
-        vec3 lightDirection = normalize(vec3(10.0, 10.0, 0.0));
+        vec3 lightDirection = normalize(vec3(10.0, 10.0, 10.0));
 
         // Surface normal (assuming it's passed from the vertex shader)
         vec3 normal = normalize(vec3(0.5, 1, 0));
@@ -180,13 +223,20 @@ export default class GrassField {
   // Update the grass field
   update(time) {
     this.grassMesh.material.uniforms.time.value = time; // Update time for wind animation
+    this.outlineMesh.material.uniforms.time.value = time; // Update time for outline mesh
+
+    // Update wind direction over time
+    const angle = Math.sin(time) * Math.PI * 0.25; // Oscillate wind direction
+    this.windDirection.set(Math.cos(angle), Math.sin(angle));
+    this.grassMesh.material.uniforms.windDirection.value.copy(this.windDirection);
+    this.outlineMesh.material.uniforms.windDirection.value.copy(this.windDirection);
   }
 
   startAnimation() {
     this.interval = setInterval(() => {
       const now = Date.now();
-      this.update(Math.sin(now * 2.0) * 0.5);
-    }, 130);
+      this.update(Math.sin(now * 2.0) * 0.5 + 0.5);
+    }, 100);
   }
 
   stopAnimation() {
