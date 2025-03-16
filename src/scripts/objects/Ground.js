@@ -5,6 +5,13 @@ import Car from './Car';
 export default class Ground {
     constructor(stage) {
         this.stage = stage;
+        this.numBlades = 589945;
+        this.windStrength = 0.1;
+
+        this.width = 100;
+        this.height = 100;
+
+        this.material = null;
 
         this.load();
     }
@@ -15,7 +22,7 @@ export default class Ground {
     }
 
     createGround() {
-        const groundGeometry = new THREE.PlaneGeometry(10.5, 10.5);
+        const groundGeometry = new THREE.PlaneGeometry(this.width, this.height);
         const groundMaterial = this.getGroundMaterial();
         const plane = new THREE.Mesh(groundGeometry, groundMaterial);
         plane.rotation.x = - Math.PI / 2;
@@ -23,18 +30,46 @@ export default class Ground {
         this.stage.sceneManager.add(this.plane);
     }
 
+    removeGround() {
+        this.stage.sceneManager.remove(this.plane);
+        this.plane.geometry.dispose();
+        this.plane.material.dispose();
+    }
+
+    updateSize(width, height) {
+        this.width = width;
+        this.height = height;
+        this.removeGround();
+        this.createGround();
+        this.grassField.removeGrassField();
+        this.createGrassField();
+    }
+
+    updateNoOfGrassBlades(numBlades) {
+        this.numBlades = numBlades;
+        this.grassField.removeGrassField(this.numBlades);
+        this.createGrassField();
+    }
+
+    updateWindStrength(windStrength) {
+        this.windStrength = windStrength;
+        this.grassField.updateWindStrength(this.windStrength);
+    }
+
     createGrassField() {
-        this.grassField = new GrassField(this.stage, 10, 10, 10000, 0.1);
+        this.grassField = new GrassField(this.stage, this.width, this.height, this.numBlades, this.windStrength);
         this.stage.sceneManager.add(this.grassField.grassMesh);
         this.grassField.startAnimation();
     }
 
     getGroundMaterial() {
+        if (this.material) return this.material;
         const texture = new THREE.TextureLoader().load('http://localhost:5173/groundTexture.png'); 
         // immediately use the texture for material creation 
 
         const material = new THREE.MeshBasicMaterial( { map:texture } );
-        return material;
+        this.material = material;
+        return this.material;
     }
 
     getGroundShaderMaterial() {

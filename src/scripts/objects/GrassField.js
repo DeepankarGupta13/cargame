@@ -104,14 +104,32 @@ export default class GrassField {
       const z = (Math.random() - 0.5) * this.height;
       const y = 0;
 
-      const scale = 0.5 + Math.random() * 0.5;
+      const scale = Math.random() * 1;
       matrix.makeScale(1, scale, 1);
 
       // Position each grass blade
+      matrix.makeRotationY(Math.random() * Math.PI * 2);
       matrix.setPosition(x, y, z);
 
       instancedMesh.setMatrixAt(i, matrix);
     }
+  }
+
+  removeGrassField() {
+    this.stopAnimation();
+    this.stage.sceneManager.remove(this.grassMesh);
+    this.stage.sceneManager.remove(this.outlineMesh);
+    this.grassMesh.geometry.dispose();
+    this.grassMesh.material.dispose();
+    this.outlineMesh.geometry.dispose();
+    this.outlineMesh.material.dispose();
+  }
+
+  updateNoOfGrassBlades(numBlades = this.numBlades) {
+    this.numBlades = numBlades;
+    this.removeGrassField();
+    this.grassMesh = this.createGrassField();
+    this.outlineMesh = this.createOutlineMesh();
   }
 
   grassMaterial() {
@@ -230,6 +248,12 @@ export default class GrassField {
     this.windDirection.set(Math.cos(angle), Math.sin(angle));
     this.grassMesh.material.uniforms.windDirection.value.copy(this.windDirection);
     this.outlineMesh.material.uniforms.windDirection.value.copy(this.windDirection);
+  }
+
+  updateWindStrength(windStrength) {
+    this.windStrength = windStrength;
+    this.grassMesh.material.uniforms.windStrength.value = windStrength;
+    this.outlineMesh.material.uniforms.windStrength.value = windStrength;
   }
 
   startAnimation() {
